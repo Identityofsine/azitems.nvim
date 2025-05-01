@@ -22,12 +22,12 @@ end
 function Person:constructor(displayName, id, url, uniqueName, imageUrl, descriptor)
 	---@type Person
 	local self = {}
-	self.displayName = displayName
-	self.id = id
-	self.url = url
-	self.uniqueName = uniqueName
-	self.imageUrl = imageUrl
-	self.descriptor = descriptor
+	self.displayName = displayName or ""
+	self.id = id or -1
+	self.url = url or ""
+	self.uniqueName = uniqueName or ""
+	self.imageUrl = imageUrl or ""
+	self.descriptor = descriptor or ""
 
 	return self
 end

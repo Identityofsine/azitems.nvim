@@ -67,7 +67,7 @@ function WorkItemFields:constructor(
 	self.changedBy = changedBy
 	self.communtCount = communtCount
 	self.title = title
-	self.priority = priority
+	self.priority = priority or ""
 	self.severity = severity
 	self.valueArea = valueArea
 
