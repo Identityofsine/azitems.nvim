@@ -3,6 +3,7 @@ local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
+local entry_display = require("telescope.pickers.entry_display")
 
 -- main module file
 local module = require("azitems.module")
@@ -23,28 +24,29 @@ end
 M.workItems = function()
 	local workItems = module.getWorkItems()
 	pickers.new({}, {
-	prompt_title = "A5 Work Items",
-	finder = finders.new_table {
-		results = workItems,
-		---@param entry WorkItem
-		entry_maker = function(entry)
-			return {
-				value = entry,
-				display = function()
-					return workitemUtils[entry.fields.workItemType](string.format("%s — %s", entry.id, entry.fields.title))
-				end,
-				ordinal = entry.id .. " " .. entry.fields.title,
-			}
+		prompt_title = "A5 Work Items",
+		finder = finders.new_table {
+			results = workItems,
+			---@param entry WorkItem
+			entry_maker = function(entry)
+				return {
+					value = entry,
+					display = function()
+						return workitemUtils[entry.fields.workItemType](string.format("%s — %s", entry.id, entry.fields.title))
+					end,
+					ordinal = entry.id .. " " .. entry.fields.title,
+				}
+			end,
+		},
+		sorter = conf.generic_sorter({}),
+		attach_mappings = function(prompt_bufnr, map)
+			actions.select_default:replace(function()
+				actions.close(prompt_bufnr)
+				local selection = action_state.get_selected_entry()
+				print(vim.inspect(selection.value))
+			end)
+			return true
 		end,
-	},
-	sorter = conf.generic_sorter({}),
-	attach_mappings = function(prompt_bufnr, map)
-		actions.select_default:replace(function()
-			actions.close(prompt_bufnr)
-			local selection = action_state.get_selected_entry()
-		end)
-		return true
-	end,
 	}):find()
 end
 
