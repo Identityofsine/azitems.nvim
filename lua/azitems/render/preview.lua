@@ -7,6 +7,7 @@ local action_state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
 
 local templates     = require("azitems.render.templates")
+local buffers 		 = require("azitems.render.buffers")
 
 local preview = {}
 
@@ -34,11 +35,11 @@ preview.workitem = function(previewer, entry, status)
 	local workItem = entry.value
 	local preview_text = templates.getWorkItemTemplate(workItem)
 
-	previewer.state.bufnr = previewer.state.bufnr or vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(previewer.state.bufnr, "buftype", "nofile")
-	vim.api.nvim_buf_set_option(previewer.state.bufnr, "filetype", "markdown")
-	vim.api.nvim_buf_set_lines(previewer.state.bufnr, 1, -1, false, vim.split(preview_text, "\n"))
 
-end
+
+	previewer.state.bufnr = previewer.state.bufnr or vim.api.nvim_create_buf(false, true)
+	BufferStylizer:stylizeToWorkItem(workItem, { bufnr=previewer.state.bufnr })
+
+	end
 
 return preview

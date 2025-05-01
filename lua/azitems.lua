@@ -48,8 +48,8 @@ M.workItems = function()
 					value = entry,
 					display = function()
 						return displayer({
-							{ workitemUtils[entry.fields.workItemType](tostring(entry.id)), "Error" },
-							{ entry.fields.title, "Error" },
+							{ workitemUtils[entry.fields.workItemType](tostring(entry.id)), "Bug" },
+							{ entry.fields.title, "BugText" },
 						})
 					end,
 					ordinal = entry.id .. " " .. entry.fields.title,

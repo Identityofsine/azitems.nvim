@@ -63,8 +63,8 @@ end
 ---@param bufobj OpenedBuffer
 BufferCache.isBufferOpen = function(self, bufobj)
 	if self.getBuffer(bufobj.id) ~= nil or
-		self.getBufferByBufnr(bufobj.bufnr) ~= nil or
-		self.getBufferByName(bufobj.name) ~= nil then
+		self.getBufferByBufnr(bufobj.bufnr) or
+		self.getBufferByName(bufobj.name) then
 		return true
 	end
 	return false
@@ -130,6 +130,43 @@ end
 
 --end of setupblock
 
+---@class BufferStylizer
+BufferStylizer = {}
+
+---@param self BufferStylizer
+---@param workItem WorkItem
+---@param bufferObj OpenedBuffer
+---@return OpenedBuffer
+BufferStylizer.stylizeToWorkItem = function(self, workItem, bufferObj)
+	if not bufferObj then
+		error("Buffer object is required")
+	end
+
+	if not workItem then
+		error("WorkItem object is required")
+	end
+
+	local opts = {
+		buf = bufferObj.bufnr,
+	}
+
+  -- Set the buffer options
+  vim.api.nvim_set_option_value("buftype", "nofile", opts)
+  vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
+  vim.api.nvim_set_option_value("swapfile", false, opts)
+	vim.api.nvim_set_option_value("filetype", "markdown", opts)
+
+	local preview_text = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
+	-- Set some sample text
+	vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, preview_text)
+	highlighter:highlightWorkItemTemplate(bufferObj)
+
+  vim.api.nvim_set_option_value("modifiable", false, opts)
+	vim.api.nvim_set_option_value("readonly", true, opts)
+
+	return bufferObj
+end
+
 
 
 ---@class Buffer
@@ -137,12 +174,12 @@ local Buffer = {}
 
 ---@param workitem WorkItem
 ---@return OpenedBuffer | nil	
-Buffer.createWorkItem = function(workitem)
+Buffer.createWorkItem = function(workitem, opts)
 
 	---@type BufferOpts
 	local bufferOpts = {
-		id = workitem.id,
-		name = "azitems:" .. workitem.id,
+		id = workitem.id or opts.id,
+		name = "azitems:" .. (workitem.id or opts.name),
 	}
 
 	local bufferObj = BufferCache:createBuffer(bufferOpts)
@@ -152,38 +189,21 @@ Buffer.createWorkItem = function(workitem)
 		error("Buffer not created")
 	end
 
-	---@type integer
-	local buffer = bufferObj.bufnr
-
-	local opts = {
-		buf = buffer,
-	}
-
-  -- Set the buffer options
-  vim.api.nvim_set_option_value("buftype", "nofile", opts)
-	vim.api.nvim_set_option_value("filetype", "markdown", opts)
-  vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
-  vim.api.nvim_set_option_value("swapfile", false, opts)
-
-	local preview_text = vim.split(templates.getWorkItemTemplate(workitem), "\n", { plain = true })
-
-  -- Set some sample text
-  vim.api.nvim_buf_set_lines(buffer, 1, -1, false, preview_text)
-	highlighter:highlightWorkItemTemplate(bufferObj)
-
-  vim.api.nvim_set_option_value("modifiable", false, opts)
-	vim.api.nvim_set_option_value("readonly", true, opts)
+	bufferObj = BufferStylizer:stylizeToWorkItem(workitem, bufferObj)
 
 	return bufferObj
 end
 
 ---@param workitem WorkItem
 Buffer.openWorkItem = function(workitem)
-  -- Create a new buffer for the workitem
-	---@type BufferOpts 
-	  -- Actually show the buffer in a new window
+	-- create new buffer
+	local bufferObj = Buffer.createWorkItem(workitem)
+	if not bufferObj then
+		return
+	end
+
   vim.cmd("vsplit") -- or "split", "tabnew", etc.
-  vim.api.nvim_set_current_buf(buffer)
+  vim.api.nvim_set_current_buf(bufferObj.bufnr)
 end
 
 return Buffer
