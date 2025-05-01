@@ -1,9 +1,11 @@
 local templates = require("azitems.render.templates")
+local highlighter = require("azitems.render.buffers.highlighter")
+local config = require("azitems.config")
 require("azitems.util.buffer")
 
 --types for the buffer
 ---@class BufferOpts 
----@field id string | nil this should be the id of whatever the buffer is showing
+---@field id string | number | nil this should be the id of whatever the buffer is showing
 ---@field name string | nil the name of the buffer
 ---@field listed boolean | nil if the buffer should be listed
 ---@field scratch boolean | nil if the buffer should be a scratch buffer
@@ -128,24 +130,30 @@ end
 
 --end of setupblock
 
+
+
 ---@class Buffer
 local Buffer = {}
 
-
 ---@param workitem WorkItem
-Buffer.openWorkItem = function(workitem)
-  -- Create a new buffer for the workitem
-	---@type BufferOpts 
+---@return OpenedBuffer | nil	
+Buffer.createWorkItem = function(workitem)
+
+	---@type BufferOpts
 	local bufferOpts = {
 		id = workitem.id,
 		name = "azitems:" .. workitem.id,
-		bufnr = buffer,
 	}
+
 	local bufferObj = BufferCache:createBuffer(bufferOpts)
-	local buffer = bufferObj.bufnr
-	if not buffer then
+	if not bufferObj then
 		return
+	elseif not bufferObj.bufnr then
+		error("Buffer not created")
 	end
+
+	---@type integer
+	local buffer = bufferObj.bufnr
 
 	local opts = {
 		buf = buffer,
@@ -157,15 +165,23 @@ Buffer.openWorkItem = function(workitem)
   vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
   vim.api.nvim_set_option_value("swapfile", false, opts)
 
-	local preview_text = templates.getWorkItemTemplate(workitem)
+	local preview_text = vim.split(templates.getWorkItemTemplate(workitem), "\n", { plain = true })
 
   -- Set some sample text
-  vim.api.nvim_buf_set_lines(buffer, 1, -1, false, vim.split(preview_text, "\n", { plain = true }))
+  vim.api.nvim_buf_set_lines(buffer, 1, -1, false, preview_text)
+	highlighter:highlightWorkItemTemplate(bufferObj)
 
-	vim.api.nvim_set_option_value("modifiable", false, opts)
+  vim.api.nvim_set_option_value("modifiable", false, opts)
 	vim.api.nvim_set_option_value("readonly", true, opts)
 
-  -- Actually show the buffer in a new window
+	return bufferObj
+end
+
+---@param workitem WorkItem
+Buffer.openWorkItem = function(workitem)
+  -- Create a new buffer for the workitem
+	---@type BufferOpts 
+	  -- Actually show the buffer in a new window
   vim.cmd("vsplit") -- or "split", "tabnew", etc.
   vim.api.nvim_set_current_buf(buffer)
 end

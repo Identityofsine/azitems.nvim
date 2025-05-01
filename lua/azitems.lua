@@ -7,9 +7,10 @@ local action_state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
 
 -- main module file
+local config = require("azitems.config").config
+local highlight = require("azitems.highlight")
 local renderer = require("azitems.render")
 local module = require("azitems.module")
-local config = require("azitems.config").config
 local workitemUtils = require("azitems.util.string")
 
 ---@class MyModule

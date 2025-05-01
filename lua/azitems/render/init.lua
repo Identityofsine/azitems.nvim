@@ -1,4 +1,4 @@
-local Buffer = require("azitems.render.buffer")
+local Buffer = require("azitems.render.buffers")
 local Preview = require("azitems.render.preview")
 
 local renderers = {}

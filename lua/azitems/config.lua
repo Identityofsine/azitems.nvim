@@ -11,7 +11,11 @@ local config = {
 	},
 }
 
+
+local n_id = vim.api.nvim_create_namespace("azitems")
+
 ConfigModule.config = config
+ConfigModule.namespace = n_id
 
 ConfigModule.setup = function(args)
 	ConfigModule.config = vim.tbl_deep_extend("force", ConfigModule.config, args or {})
