@@ -21,10 +21,12 @@ local BufferOpts = {
 ---@field id string | number | nil this should be the id of whatever the buffer is showing
 ---@field name string | nil the name of the buffer
 ---@field bufnr number | nil the buffer number of the opened buffer
+---@field content string[] | nil
 local OpenedBuffer = {
 	id = nil,
 	name = nil,
 	bufnr = nil,
+	content = nil,
 }
 
 ---@class BufferCache static
@@ -156,9 +158,9 @@ BufferStylizer.stylizeToWorkItem = function(self, workItem, bufferObj)
   vim.api.nvim_set_option_value("swapfile", false, opts)
 	vim.api.nvim_set_option_value("filetype", "markdown", opts)
 
-	local preview_text = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
+	bufferObj.content = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
 	-- Set some sample text
-	vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, preview_text)
+	vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, bufferObj.content)
 	highlighter:highlightWorkItemTemplate(bufferObj)
 
   vim.api.nvim_set_option_value("modifiable", false, opts)
