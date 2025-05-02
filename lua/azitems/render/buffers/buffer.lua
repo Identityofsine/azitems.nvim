@@ -193,7 +193,6 @@ BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 			if unsubscribe then
 				unsubscribe()
 			end
-			return
 		end
 
 		-- Set the buffer options

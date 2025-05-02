@@ -1,3 +1,4 @@
+require("azitems.util")
 local plugin_path = debug.getinfo(1, "S").source:sub(2):match("(.*/)")
 local templates_folder = plugin_path .. "tmpl"
 
@@ -36,6 +37,7 @@ Templater.getWorkItemTemplate = function(workItem)
 	local template_path = get_template_path(template_name)
 	local file = table.concat(vim.fn.readfile(template_path), "\n")
 	local text = file
+	text = text:gsub("{{emoji}}", nilSafeString(WorkTypeTable[workItem.fields.workItemType]("")))
 	text = text:gsub("{{title}}", nilSafeString(workItem.fields.title))
 	text = text:gsub("{{id}}", nilSafeString(workItem.id))
 	text = text:gsub("{{workItemType}}", nilSafeString(workItem.fields.workItemType))
@@ -56,6 +58,7 @@ Templater.getWorkItemTemplate = function(workItem)
 	text = text:gsub("{{changedBy.displayName}}", nilSafeString(workItem.fields.changedBy.displayName))
 	text = text:gsub("{{changedBy.uniqueName}}", nilSafeString(workItem.fields.changedBy.uniqueName))
 	text = text:gsub("{{changedDate}}", nilSafeString(workItem.fields.changedDate))
+	text = text:gsub("{{description}}", convertHtmlToMd(nilSafeString(workItem.fields.description)))
 
 	return text
 end

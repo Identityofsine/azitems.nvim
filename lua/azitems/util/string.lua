@@ -12,7 +12,7 @@ local icons = {
 }
 
 
-local WorkTypeTable = {}
+WorkTypeTable = {}
 
 ---@param string string
 WorkTypeTable["Bug"] = function(string)

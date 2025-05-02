@@ -200,6 +200,7 @@ Parser.parseWorkItem = function(body)
 		id = body.id,
 		fields = {
 			title = body.fields['System.Title'],
+			description = body.fields['System.Description'] or body.fields['Microsoft.VSTS.TCM.ReproSteps'],
 			areaPath = body.fields['System.AreaPath'],
 			teamProject = body.fields['System.TeamProject'],
 			iterationPath = body.fields['System.IterationPath'],

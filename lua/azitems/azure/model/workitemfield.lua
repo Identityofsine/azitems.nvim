@@ -52,6 +52,7 @@ local WorkItemFieldsAPI = {
 
 ---@class WorkItemFields
 ---@field areaPath string
+---@field description string
 ---@field teamProject string
 ---@field iterationPath string
 ---@field workItemType string
@@ -70,6 +71,7 @@ local WorkItemFieldsAPI = {
 ---@field relatedItems Base[] | nil 
 local WorkItemFields = {
 	title = "",
+	description = "",
 	areaPath = "",
 	teamProject = "",
 	iterationPath = "",
