@@ -2,6 +2,7 @@ local config = require("azitems.config")
 local person = require("azitems.azure.model.person")
 local WorkItemField = require("azitems.azure.model.workitemfield")
 local WorkItem      = require("azitems.azure.model.workitem")
+local state         = require("azitems.render.state")
 
 print("Azure API module loaded")
 print("Config: ", config.config.azure.patToken)
@@ -188,7 +189,15 @@ end
 
 function AzureApi:getWorkItems()
 
-	return fakeWorkItems()
+	local workitems = fakeWorkItems()
+	local statefulWorkItems = {}
+	for index, value in ipairs(workitems) do
+		statefulWorkItems[index] = state.new()
+		statefulWorkItems[index].setState(value)
+	end
+
+	return statefulWorkItems
+
 end
 
 return AzureApi

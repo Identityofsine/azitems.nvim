@@ -25,6 +25,15 @@ State.setState = function(self, state)
 	self:_emit()
 end
 
-State.getState = function(self, state)
+State.getState = function(self)
 	return self._value
 end
+
+State.new = function(self, initalValue)
+	local instance = setmetatable({}, { __index = State })
+	instance._value = initalValue
+	instance._subscribers = {}
+	return instance
+end
+
+return State

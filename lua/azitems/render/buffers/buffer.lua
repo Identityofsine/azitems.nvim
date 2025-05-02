@@ -136,13 +136,15 @@ end
 BufferStylizer = {}
 
 ---@param self BufferStylizer
----@param workItem WorkItem
+---@param state State 
 ---@param bufferObj OpenedBuffer
 ---@return OpenedBuffer
-BufferStylizer.stylizeToWorkItem = function(self, workItem, bufferObj)
+BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 	if not bufferObj then
 		error("Buffer object is required")
 	end
+
+	local workItem = state.getState()
 
 	if not workItem then
 		error("WorkItem object is required")
@@ -152,21 +154,26 @@ BufferStylizer.stylizeToWorkItem = function(self, workItem, bufferObj)
 		buf = bufferObj.bufnr,
 	}
 
-  -- Set the buffer options
-  vim.api.nvim_set_option_value("buftype", "nofile", opts)
-  vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
-  vim.api.nvim_set_option_value("swapfile", false, opts)
-	vim.api.nvim_set_option_value("filetype", "markdown", opts)
+	local effect = function()
+		-- Set the buffer options
+		vim.api.nvim_set_option_value("buftype", "nofile", opts)
+		vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
+		vim.api.nvim_set_option_value("swapfile", false, opts)
+		vim.api.nvim_set_option_value("filetype", "markdown", opts)
 
-	bufferObj.content = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
-	-- Set some sample text
-	vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, bufferObj.content)
-	highlighter:highlightWorkItemTemplate(bufferObj)
+		bufferObj.content = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
+		-- Set some sample text
+		vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, bufferObj.content)
+		highlighter:highlightWorkItemTemplate(bufferObj)
 
-  vim.api.nvim_set_option_value("modifiable", false, opts)
-	vim.api.nvim_set_option_value("readonly", true, opts)
+		vim.api.nvim_set_option_value("modifiable", false, opts)
+		vim.api.nvim_set_option_value("readonly", true, opts)
+	end
 
-	return bufferObj
+	state:_subscribe(effect)
+	effect()
+
+  return bufferObj
 end
 
 
@@ -174,9 +181,15 @@ end
 ---@class Buffer
 local Buffer = {}
 
----@param workitem WorkItem
+---@param state State 
 ---@return OpenedBuffer | nil	
-Buffer.createWorkItem = function(workitem, opts)
+Buffer.createWorkItem = function(state, opts)
+
+	---@type WorkItem
+	local workitem = state:getState()
+	if not workitem then
+		error "Work Item Null"
+	end
 
 	---@type BufferOpts
 	local bufferOpts = {
@@ -191,12 +204,12 @@ Buffer.createWorkItem = function(workitem, opts)
 		error("Buffer not created")
 	end
 
-	bufferObj = BufferStylizer:stylizeToWorkItem(workitem, bufferObj)
+	bufferObj = BufferStylizer:stylizeToWorkItem(state, bufferObj)
 
 	return bufferObj
 end
 
----@param workitem WorkItem
+---@param workitem State 
 Buffer.openWorkItem = function(workitem)
 	-- create new buffer
 	local bufferObj = Buffer.createWorkItem(workitem)

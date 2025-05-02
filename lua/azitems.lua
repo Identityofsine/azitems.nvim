@@ -42,17 +42,20 @@ M.workItems = function()
 		prompt_title = "A6 Work Items",
 		finder = finders.new_table {
 			results = workItems,
-			---@param entry WorkItem
+			---@param entry State 
 			entry_maker = function(entry)
 				return {
-					value = entry,
+					value = entry:getState(),
+					vim.print(entry:getState()),
 					display = function()
+						---@type WorkItem
+						local val = entry:getState()
 						return displayer({
-							{ workitemUtils[entry.fields.workItemType](tostring(entry.id)), "Bug" },
-							{ entry.fields.title, "BugText" },
+							{ workitemUtils[val.fields.workItemType](tostring(val.id)), "Bug" },
+							{ val.fields.title, "BugText" },
 						})
 					end,
-					ordinal = entry.id .. " " .. entry.fields.title,
+					ordinal = entry:getState().id .. " " .. entry:getState().fields.title,
 				}
 			end,
 		},
