@@ -8,6 +8,11 @@ local config = require("azitems.config")
 ---@class Highlighter
 local Highlighter = {}
 
+Highlighter.clearHighlights = function(self, buffer)
+	-- clear all extmarks
+	vim.api.nvim_buf_clear_namespace(buffer.bufnr, 0, 0, -1)
+end
+
 ---this is completely static, and based on the template, if the template changes, this will need to be updated
 ---@param buffer OpenedBuffer 
 Highlighter.highlightWorkItemTemplate = function(self, buffer)

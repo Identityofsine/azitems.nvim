@@ -24,7 +24,7 @@ preview._workitem = function(workitem)
 	)
 
 	local bufnr = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_lines(bufnr, 1, -1, false, vim.split(preview_text, "\n"))
+	vim.api.nvim_buf_set_lines(bufnr, 2, -1, false, vim.split(preview_text, "\n"))
 	vim.api.nvim_buf_set_option(bufnr, "filetype", "md")
 
 	return bufnr
@@ -33,9 +33,6 @@ end
 
 preview.workitem = function(previewer, entry, status)
 	local workItem = entry.value
-	local preview_text = templates.getWorkItemTemplate(workItem)
-
-
 
 	previewer.state.bufnr = previewer.state.bufnr or vim.api.nvim_create_buf(false, true)
 	BufferStylizer:stylizeToWorkItem(workItem, { bufnr=previewer.state.bufnr })

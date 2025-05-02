@@ -1,3 +1,29 @@
+---@class PersonAPI
+---@field displayName string
+---@field url string
+---@field _links table
+---@field _links.avatar table
+---@field _links.avatar.href string
+---@field id string
+---@field uniqueName string
+---@field imageUrl string
+---@field descriptor string
+local PersonAPI = {
+	displayName = nil,
+	url = nil,
+	_links = {
+		avatar = {
+			href = nil -- string (URL)
+		}
+	},
+	id = nil, -- string (GUID)
+	uniqueName = nil, -- string (email)
+	imageUrl = nil, -- string (URL)
+	descriptor = nil -- string
+}
+
+
+
 ---@class Person
 --azure defined person
 local Person = {
@@ -19,15 +45,15 @@ Person.hack = function()
 	return false
 end
 
-function Person:constructor(displayName, id, url, uniqueName, imageUrl, descriptor)
+function Person:constructor(opts)
 	---@type Person
 	local self = {}
-	self.displayName = displayName or ""
-	self.id = id or -1
-	self.url = url or ""
-	self.uniqueName = uniqueName or ""
-	self.imageUrl = imageUrl or ""
-	self.descriptor = descriptor or ""
+	self.displayName = opts.displayName or ""
+	self.id = opts.id or -1
+	self.url = opts.url or ""
+	self.uniqueName = opts.uniqueName or ""
+	self.imageUrl = opts.imageUrl or ""
+	self.descriptor = opts.descriptor or ""
 
 	return self
 end

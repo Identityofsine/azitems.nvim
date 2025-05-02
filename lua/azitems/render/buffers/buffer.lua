@@ -2,6 +2,7 @@ local templates = require("azitems.render.templates")
 local highlighter = require("azitems.render.buffers.highlighter")
 local config = require("azitems.config")
 require("azitems.util.buffer")
+local azure_api = require("azitems.azure.azure_api")
 
 --types for the buffer
 ---@class BufferOpts 
@@ -9,11 +10,13 @@ require("azitems.util.buffer")
 ---@field name string | nil the name of the buffer
 ---@field listed boolean | nil if the buffer should be listed
 ---@field scratch boolean | nil if the buffer should be a scratch buffer
+---@field events table | nil a table of events to subscribe to 
 local BufferOpts = {
   id = nil,
 	name = nil,
 	listed = false,
 	scratch = true,
+	events = {},
 }
 
 
@@ -21,11 +24,13 @@ local BufferOpts = {
 ---@field id string | number | nil this should be the id of whatever the buffer is showing
 ---@field name string | nil the name of the buffer
 ---@field bufnr number | nil the buffer number of the opened buffer
+---@field win number | nil the window number of the opened buffer
 ---@field content string[] | nil
 local OpenedBuffer = {
 	id = nil,
 	name = nil,
 	bufnr = nil,
+	win = nil,
 	content = nil,
 }
 
@@ -77,6 +82,7 @@ BufferCache.closeBuffer = function(self, id)
 		local buffer = self.opened[id]
 		vim.api.nvim_set_current_buf(buffer.bufnr)
 		vim.cmd("q")
+		buffer.id = nil
 		--vim.api.nvim_buf_delete(buffer.bufnr, { force = true })
 		self.opened[id] = nil
 	end
@@ -116,18 +122,27 @@ BufferCache.createBuffer = function(self, opts)
   self.opened[opts.id] = bufferObj
 
 	-- Set the buffer maps 
-	self.setupBuffer(self, bufferObj)
+	self.setupBuffer(self, bufferObj, opts.events)
 
 	return bufferObj
 end
 
-BufferCache.setupBuffer = function(self, bufObj)
+BufferCache.setupBuffer = function(self, bufObj, events)
 	--set generic keymaps
 	vim.keymap.set('', 'q', function()
 		if bufObj then
 			self.closeBuffer(self, bufObj.id)
 		end
 	end, { buffer = bufObj.bufnr, desc = "Close buffer" })
+
+	if events then
+		for _, event in ipairs(events) do
+			if type(event) == "function" then
+				event(bufObj)
+			end
+		end
+	end
+
 end
 
 --end of setupblock
@@ -144,7 +159,7 @@ BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 		error("Buffer object is required")
 	end
 
-	local workItem = state.getState()
+	local workItem = state:getState()
 
 	if not workItem then
 		error("WorkItem object is required")
@@ -154,8 +169,36 @@ BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 		buf = bufferObj.bufnr,
 	}
 
-	local effect = function()
+	---@param unsubscribe function
+	local effect = function(unsubscribe)
+
+		workItem = state:getState()
+		if not workItem then
+
+			workItem = {
+				id = -1,
+				fields = {
+					workItemType = "Bug",
+					title = "No Work Item",
+					assignedTo = { displayName = "None" },
+					state = "None",
+					description = "No Description",
+					createdBy = { displayName = "None" },
+					changedBy = { displayName = "None" },
+				},
+			}
+		end
+
+		if not bufferObj.id then
+			if unsubscribe then
+				unsubscribe()
+			end
+			return
+		end
+
 		-- Set the buffer options
+		vim.api.nvim_set_option_value("modifiable", true, opts)
+		vim.api.nvim_set_option_value("readonly", false, opts)
 		vim.api.nvim_set_option_value("buftype", "nofile", opts)
 		vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
 		vim.api.nvim_set_option_value("swapfile", false, opts)
@@ -163,15 +206,23 @@ BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 
 		bufferObj.content = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
 		-- Set some sample text
+		highlighter:clearHighlights(bufferObj)
+
+		local cursorPos = vim.api.nvim_win_get_cursor(0)
+
+		vim.api.nvim_buf_set_lines(bufferObj.bufnr, 0, -1, false, {})
 		vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, bufferObj.content)
+
+		--set the cursor position to where it was
+		vim.api.nvim_win_set_cursor(0, { cursorPos[1], cursorPos[2] })
+
 		highlighter:highlightWorkItemTemplate(bufferObj)
 
-		vim.api.nvim_set_option_value("modifiable", false, opts)
 		vim.api.nvim_set_option_value("readonly", true, opts)
+		vim.api.nvim_set_option_value("modifiable", false, opts)
 	end
 
-	state:_subscribe(effect)
-	effect()
+	effect(state:subscribe(effect))
 
   return bufferObj
 end
@@ -195,6 +246,15 @@ Buffer.createWorkItem = function(state, opts)
 	local bufferOpts = {
 		id = workitem.id or opts.id,
 		name = "azitems:" .. (workitem.id or opts.name),
+		events = {
+			function(bufObj)
+				vim.keymap.set('', '<Tab>', function()
+					workitem = state:getState()
+					workitem.fields.workItemType = "Ready for Code Review"
+					azure_api:mutateWorkItem(workitem, function(result) state:setState(result) end)
+				end, { buffer = bufObj.bufnr, desc = "Open work item in browser" })
+			end,
+		} or opts.events,
 	}
 
 	local bufferObj = BufferCache:createBuffer(bufferOpts)
@@ -218,7 +278,9 @@ Buffer.openWorkItem = function(workitem)
 	end
 
   vim.cmd("vsplit") -- or "split", "tabnew", etc.
-  vim.api.nvim_set_current_buf(bufferObj.bufnr)
+	bufferObj.win = vim.api.nvim_get_current_win()
+	vim.api.nvim_win_set_buf(bufferObj.win, bufferObj.bufnr)
+	vim.api.nvim_set_current_win(bufferObj.win)
 end
 
 return Buffer

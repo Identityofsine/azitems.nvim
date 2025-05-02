@@ -7,7 +7,7 @@ local action_state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
 
 -- main module file
-local config = require("azitems.config").config
+local config = require("azitems.config")
 local highlight = require("azitems.highlight")
 local renderer = require("azitems.render")
 local module = require("azitems.module")
@@ -17,11 +17,8 @@ local workitemUtils = require("azitems.util.string")
 local M = {}
 
 M.setup = function(opts)
-	config.setup(opts)
-end
-
-M.hello = function()
-  return module.my_first_function(config.opt)
+	vim.notify("Setting up azitems with opts: " .. vim.inspect(opts), vim.log.levels.INFO)
+	config:setup(opts)
 end
 
 local displayer = entry_display.create({
@@ -44,18 +41,20 @@ M.workItems = function()
 			results = workItems,
 			---@param entry State 
 			entry_maker = function(entry)
+				local value = entry:getState()
+				if not value then
+					return nil
+				end
 				return {
-					value = entry:getState(),
-					vim.print(entry:getState()),
+					value = entry,
 					display = function()
 						---@type WorkItem
-						local val = entry:getState()
 						return displayer({
-							{ workitemUtils[val.fields.workItemType](tostring(val.id)), "Bug" },
-							{ val.fields.title, "BugText" },
+							{ workitemUtils[value.fields.workItemType](tostring(value.id)), "Bug" },
+							{ value.fields.title, "BugText" },
 						})
 					end,
-					ordinal = entry:getState().id .. " " .. entry:getState().fields.title,
+					ordinal = value.id .. " " .. value.fields.title,
 				}
 			end,
 		},

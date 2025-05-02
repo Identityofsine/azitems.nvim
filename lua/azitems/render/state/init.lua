@@ -1,38 +1,52 @@
 ---@class State
 ---@field _value unknown
----@field subscribers function[] 
+---@field subscribers table 
 local State = {
 	_value = nil,
 	_subscribers = {}
 }
 
 ---@param callback function
-State._subscribe = function(self, callback)
-	self.subscribers[callback] = callback
-	return function()
-		self.subscribers[callback] = nil
+function State:subscribe(callback)
+	vim.print("subscribing to state")
+	local insertId = #self._subscribers + 1
+	local unsub = function()
+		self.subscribers[insertId] = nil
 	end
+	local callbackWrapper = function() callback(unsub) end
+	table.insert(self._subscribers, insertId, callbackWrapper)
+
+	return unsub
 end
 
-State._emit = function(self)
+function State:_emit()
+	if not self._subscribers then
+		return
+	end
 	for _, value in ipairs(self._subscribers) do
 		value(self._value)
 	end
 end
 
-State.setState = function(self, state)
-	self._value = state
+---@param state unknown | function
+function State:setState(state)
+	if type(state) == "function" then
+		state = state(self._value)
+	else
+		self._value = state
+	end
 	self:_emit()
 end
 
-State.getState = function(self)
+function State:getState()
 	return self._value
 end
 
-State.new = function(self, initalValue)
-	local instance = setmetatable({}, { __index = State })
+function State:new(initalValue)
+	local instance = setmetatable({}, self)
+	self.__index = self
+	self.subscribers = {}
 	instance._value = initalValue
-	instance._subscribers = {}
 	return instance
 end
 

@@ -3,6 +3,10 @@ local person = require("azitems.azure.model.person")
 local WorkItemField = require("azitems.azure.model.workitemfield")
 local WorkItem      = require("azitems.azure.model.workitem")
 local state         = require("azitems.render.state")
+require("azitems.util")
+
+-- http
+local curl = require("plenary.curl")
 
 print("Azure API module loaded")
 print("Config: ", config.config.azure.patToken)
@@ -179,7 +183,100 @@ function fakeWorkItem1()
 	return workItem
 end
 
-function fakeWorkItems()
+
+---@class AzureCache
+local AzureCache = {}
+
+
+
+---@class Parser
+local Parser = {}
+
+
+---@param body WorkItemAPI
+Parser.parseWorkItem = function(body)
+	---@type WorkItem
+	local workItem = {
+		id = body.id,
+		fields = {
+			title = body.fields['System.Title'],
+			areaPath = body.fields['System.AreaPath'],
+			teamProject = body.fields['System.TeamProject'],
+			iterationPath = body.fields['System.IterationPath'],
+			workItemType = body.fields['System.WorkItemType'],
+			state = body.fields['System.State'],
+			assignedTo = person:constructor(body.fields['System.AssignedTo']),
+			changedDate = body.fields['System.ChangedDate'],
+			changedBy = person:constructor(body.fields['System.ChangedBy']),
+			commentCount = body.fields['System.CommentCount'],
+			priority = body.fields['Microsoft.VSTS.Common.Priority'],
+			severity = body.fields['Microsoft.VSTS.Common.Severity'],
+			valueArea = body.fields['Microsoft.VSTS.Common.ValueArea'],
+			closedBy = person:constructor(body.fields['Microsoft.VSTS.Common.ClosedBy']),
+			closedDate = body.fields['Microsoft.VSTS.Common.ClosedDate'],
+			resolvedBy = person:constructor(body.fields['Microsoft.VSTS.Common.ResolvedBy']),
+			resolvedDate = body.fields['Microsoft.VSTS.Common.ResolvedDate'],
+			stateChangeDate = body.fields['Microsoft.VSTS.Common.StateChangeDate'],
+			reproSteps = body.fields['Microsoft.VSTS.TCM.ReproSteps'],
+			createdBy = person:constructor(body.fields['System.CreatedBy']),
+			createdDate = body.fields['System.CreatedDate'],
+			reason = body.fields['System.Reason'],
+			constructor={}
+		},
+		constructor = {},
+		__index = WorkItem
+	}
+	setmetatable(workItem, workItem)
+	return workItem
+end
+
+Parser.parseWorkItems = function(body)
+	local workItems = {}
+	for _, item in ipairs(body.value) do
+		local workItem = Parser.parseWorkItem(item)
+		table.insert(workItems, workItem)
+	end
+	return workItems
+end
+
+
+---@class FetchOpts
+local fetchOpts = {
+	requestMethod = "get",
+	org = "lbisoftware",
+	project = "A5",
+	headers = {
+		["Content-Type"] = "application/json",
+	},
+}
+
+---@param opts FetchOpts
+local function azureFetch(opts)
+
+	if config.config.azure.patToken == "" then
+		vim.notify("Azure PAT token is not set", vim.log.levels.ERROR)
+		return nil
+	end
+
+  local json_body = vim.json.encode({
+    ids = {35389, 35403, 35288, 35405, 35406},
+  })
+	local body = curl.post({
+		url = "https://dev.azure.com/" .. opts.org .. "/" .. opts.project .. "/" .. "_apis/wit/workitemsbatch?api-version=7.2-preview.1",
+		body = json_body,
+		headers = Merge(opts.headers, {
+			["Content-Length"] = tostring(#json_body),
+			["Authorization"] = "Bearer" .. config.config.azure.patToken,
+		}),
+	})
+	if body.error then
+		return nil
+	end
+
+	return vim.json.decode(body.body)
+end
+
+local function fakeWorkItems()
 	return {
 		fakeWorkItem1(),
 		fakeWorkItem2(),
@@ -189,15 +286,22 @@ end
 
 function AzureApi:getWorkItems()
 
-	local workitems = fakeWorkItems()
+	local preWorkItems = azureFetch(fetchOpts)
+	local workitems = Parser.parseWorkItems(preWorkItems)
 	local statefulWorkItems = {}
 	for index, value in ipairs(workitems) do
-		statefulWorkItems[index] = state.new()
-		statefulWorkItems[index].setState(value)
+		statefulWorkItems[index] = state:new(value)
 	end
 
 	return statefulWorkItems
+end
 
+---@param workItem WorkItem
+---@param callback function
+function AzureApi:mutateWorkItem(workItem, callback)
+	-- call api and update workItem
+	-- ...
+	return callback(workItem)
 end
 
 return AzureApi

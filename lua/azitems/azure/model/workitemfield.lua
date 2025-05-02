@@ -1,3 +1,55 @@
+
+---@class WorkItemFieldsAPI
+---@field System.AreaPath string | nil
+---@field System.TeamProject string | nil
+---@field System.IterationPath string | nil
+---@field System.WorkItemType string | nil
+---@field System.State string | nil
+---@field System.Reason string | nil
+---@field System.AssignedTo PersonAPI | nil
+---@field System.CreatedDate string | nil
+---@field System.CreatedBy PersonAPI | nil
+---@field System.ChangedDate string | nil
+---@field System.ChangedBy PersonAPI | nil
+---@field System.CommentCount number | nil
+---@field System.Title string | nil
+---@field Microsoft.VSTS.Common.StateChangeDate string | nil
+---@field Microsoft.VSTS.Common.ResolvedDate string | nil
+---@field Microsoft.VSTS.Common.ResolvedBy PersonAPI | nil
+---@field Microsoft.VSTS.Common.ClosedDate string | nil
+---@field Microsoft.VSTS.Common.ClosedBy PersonAPI | nil
+---@field Microsoft.VSTS.Common.Priority number | nil
+---@field Microsoft.VSTS.Common.Severity string | nil
+---@field Microsoft.VSTS.Common.ValueArea string | nil
+---@field Custom.Release number | nil
+---@field Microsoft.VSTS.TCM.ReproSteps string | nil
+local WorkItemFieldsAPI = {
+	["System.AreaPath"] = nil,
+	["System.TeamProject"] = nil, -- string
+	["System.IterationPath"] = nil, -- string
+	["System.WorkItemType"] = nil, -- string
+	["System.State"] = nil, -- string
+	["System.Reason"] = nil, -- string
+	["System.AssignedTo"] = nil,
+	["System.CreatedDate"] = nil, -- string (ISO 8601 datetime)
+	["System.CreatedBy"] = nil,
+	["System.ChangedDate"] = nil, -- string (ISO 8601 datetime)
+	["System.ChangedBy"] = nil,
+	["System.CommentCount"] = nil, -- number
+	["System.Title"] = nil, -- string
+	["Microsoft.VSTS.Common.StateChangeDate"] = nil, -- string (ISO 8601 datetime)
+	["Microsoft.VSTS.Common.ResolvedDate"] = nil, -- string (ISO 8601 datetime)
+	["Microsoft.VSTS.Common.ResolvedBy"] = nil,
+	["Microsoft.VSTS.Common.ClosedDate"] = nil, -- string (ISO 8601 datetime)
+	["Microsoft.VSTS.Common.ClosedBy"] = nil,
+	["Microsoft.VSTS.Common.Priority"] = nil, -- number
+	["Microsoft.VSTS.Common.Severity"] = nil, -- string (e.g., "3 - Medium")
+	["Microsoft.VSTS.Common.ValueArea"] = nil, -- string
+	["Custom.Release"] = nil, -- number
+	["Microsoft.VSTS.TCM.ReproSteps"] = nil -- string (HTML content)
+}
+
+
 ---@class WorkItemFields
 ---@field areaPath string
 ---@field teamProject string
@@ -12,7 +64,7 @@
 ---@field changedBy Person | nil
 ---@field communtCount number | nil
 ---@field title string
----@field priority string | nil
+---@field priority string | number | nil
 ---@field severity string | nil
 ---@field valueArea string | nil
 ---@field relatedItems Base[] | nil 
