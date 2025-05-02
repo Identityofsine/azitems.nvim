@@ -15,6 +15,7 @@
 ---@field priority string | nil
 ---@field severity string | nil
 ---@field valueArea string | nil
+---@field relatedItems Base[] | nil 
 local WorkItemFields = {
 	title = "",
 	areaPath = "",
@@ -32,6 +33,7 @@ local WorkItemFields = {
 	priority = nil,
 	severity = nil,
 	valueArea = nil,
+	relatedItems = {},
 }
 
 function WorkItemFields:constructor(
