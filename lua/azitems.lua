@@ -17,7 +17,6 @@ local workitemUtils = require("azitems.util.string")
 local M = {}
 
 M.setup = function(opts)
-	vim.notify("Setting up azitems with opts: " .. vim.inspect(opts), vim.log.levels.INFO)
 	config:setup(opts)
 end
 
@@ -100,6 +99,10 @@ M.queries = function()
 			return true
 		end
 	}):find()
+end
+
+M.clearCache = function()
+	module:clearCache()
 end
 
 

@@ -1,7 +1,5 @@
 ---@class Config
----@field opt string Your config option
 local config = {
-  opt = "Hello!",
 	api = {
 		cache = {
 			enabled = true,
@@ -10,6 +8,8 @@ local config = {
 	},
 	azure = {
 		patToken = "",
+		org = "",
+		project = "",
 		workitem = {
 			query = {
 				id = "128ef632-31a2-420a-b413-8140848fb015",

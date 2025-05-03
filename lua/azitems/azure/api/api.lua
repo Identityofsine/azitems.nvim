@@ -7,8 +7,8 @@ local curl = require("plenary.curl")
 FetchOpts = {
 	url = "",
 	requestMethod = "get",
-	org = "lbisoftware",
-	project = "A5",
+	org = nil,
+	project = nil,
 	callback = nil,
 	body = {},
 	headers = {
@@ -25,8 +25,14 @@ function AzureFetch(opts)
 		return nil
 	end
 
+	local freshOpts = {
+		project = config.config.azure.project,
+		org = config.config.azure.org,
+	}
+
 	---@type FetchOpts
-	local fOpts = Merge(FetchOpts, opts)
+	local fOpts = Merge(FetchOpts, freshOpts)
+	fOpts = Merge(fOpts, opts or {})
   local json_body = vim.json.encode(fOpts.body)
 
 	local curl_method = curl[fOpts.requestMethod]

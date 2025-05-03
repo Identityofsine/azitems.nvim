@@ -1,6 +1,7 @@
 require("azitems.azure.api.api")
 require("azitems.azure.api.parser")
 require("azitems.util")
+local config = require("azitems.config")
 
 
 ---@class CommentApi
@@ -16,8 +17,8 @@ function CommentApi:getComments(workItemId, opts)
 	local mergedOpts = Merge({
 		requestMethod = "get",
 		headers = {},
-		url = CommentsEndpoint:gsub("{{org}}", "lbisoftware"):gsub("{{project}}", "A5"):gsub("{{workitemid}}", workItemId),
-		org = "lbisoftware",
+		url = CommentsEndpoint:gsub("{{org}}", config.config.azure.org):gsub("{{project}}", config.config.azure.project):gsub("{{workitemid}}", workItemId),
+		org = config.config.azure.org,
 		project = "A5",
 	}, opts)
 
