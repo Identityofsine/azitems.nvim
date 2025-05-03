@@ -1,10 +1,11 @@
-function Merge(t1, t2)
-    for k, v in pairs(t2) do
-        if (type(v) == "table") and (type(t1[k] or false) == "table") then
-            Merge(t1[k], t2[k])
-        else
-            t1[k] = v
-        end
-    end
-    return t1
+function Merge(defaults, overrides)
+	local copy = vim.deepcopy(defaults)
+	for k, v in pairs(overrides) do
+		if type(v) == "table" and type(copy[k]) == "table" then
+			copy[k] = Merge(copy[k], v)
+		else
+			copy[k] = v
+		end
+	end
+	return copy
 end

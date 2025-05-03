@@ -2,8 +2,20 @@
 ---@field opt string Your config option
 local config = {
   opt = "Hello!",
+	api = {
+		cache = {
+			enabled = true,
+			refreshTime = 300, -- every 5 minutes
+		}
+	},
 	azure = {
-		patToken = ""
+		patToken = "",
+		workitem = {
+			query = {
+				id = "128ef632-31a2-420a-b413-8140848fb015",
+				name = "Me",
+			}
+		}
 	},
 }
 

@@ -5,6 +5,7 @@ local curl = require("plenary.curl")
 
 ---@class FetchOpts
 FetchOpts = {
+	url = "",
 	requestMethod = "get",
 	org = "lbisoftware",
 	project = "A5",
@@ -15,6 +16,7 @@ FetchOpts = {
 }
 
 ---@param opts FetchOpts
+---@return table
 function AzureFetch(opts)
 
 	if config.config.azure.patToken == "" then
@@ -22,20 +24,21 @@ function AzureFetch(opts)
 		return nil
 	end
 
-	opts = Merge(opts, FetchOpts)
+	---@type FetchOpts
+	local fOpts = Merge(FetchOpts, opts)
+  local json_body = vim.json.encode(fOpts.body)
 
-  local json_body = vim.json.encode({
-    ids = {35389, 35403, 35288, 35405, 35406},
-  })
-	local body = curl.post({
-		url = "https://dev.azure.com/" .. opts.org .. "/" .. opts.project .. "/" .. "_apis/wit/workitemsbatch?api-version=7.2-preview.1",
+	local body = curl[opts.requestMethod]({
+		url = fOpts.url,
 		body = json_body,
 		headers = Merge(opts.headers, {
+			["Content-Type"] = "application/json",
 			["Content-Length"] = tostring(#json_body),
 			["Authorization"] = "Bearer" .. config.config.azure.patToken,
 		}),
 	})
 	if body.error then
+		vim.notify("Error fetching data from Azure DevOps: " .. body.error, vim.log.levels.ERROR)
 		return nil
 	end
 

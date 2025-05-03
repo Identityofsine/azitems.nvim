@@ -8,7 +8,6 @@ local State = {
 
 ---@param callback function
 function State:subscribe(callback)
-	vim.print("subscribing to state")
 	local insertId = #self._subscribers + 1
 	local unsub = function()
 		self.subscribers[insertId] = nil

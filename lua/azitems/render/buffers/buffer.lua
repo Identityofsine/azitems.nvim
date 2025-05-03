@@ -82,9 +82,7 @@ BufferCache.closeBuffer = function(self, id)
 		local buffer = self.opened[id]
 		vim.api.nvim_set_current_buf(buffer.bufnr)
 		vim.cmd("q")
-		buffer.id = nil
-		--vim.api.nvim_buf_delete(buffer.bufnr, { force = true })
-		self.opened[id] = nil
+		self:eraseBuffer(id)
 	end
 end
 
@@ -93,6 +91,14 @@ BufferCache.closeAllBuffers = function(self)
 		self.closeBuffer(self, buffer.id)
 	end
 	self.opened = {}
+end
+
+BufferCache.eraseBuffer = function(self, id)
+	if self.opened[id] then
+		local buffer = self.opened[id]
+		buffer.id = nil
+		self.opened[id] = nil
+	end
 end
 
 
@@ -165,16 +171,16 @@ BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 		error("WorkItem object is required")
 	end
 
-	local opts = {
-		buf = bufferObj.bufnr,
-	}
 
 	---@param unsubscribe function
 	local effect = function(unsubscribe)
 
+		local opts = {
+			buf = bufferObj.bufnr,
+		}
+
 		workItem = state:getState()
 		if not workItem then
-
 			workItem = {
 				id = -1,
 				fields = {
@@ -189,10 +195,16 @@ BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 			}
 		end
 
-		if not bufferObj.id then
+		if not bufferObj.id and not vim.api.nvim_buf_is_valid(opts.buf) then
 			if unsubscribe then
 				unsubscribe()
 			end
+			return
+		elseif not vim.api.nvim_buf_is_valid(bufferObj.bufnr) then
+			if unsubscribe then
+				unsubscribe()
+			end
+			BufferCache:closeBuffer(bufferObj.id)
 		end
 
 		-- Set the buffer options
@@ -249,7 +261,7 @@ Buffer.createWorkItem = function(state, opts)
 			function(bufObj)
 				vim.keymap.set('', '<Tab>', function()
 					workitem = state:getState()
-					workitem.fields.workItemType = "Ready for Code Review"
+					--where you want state changes to happen
 					AzureApi:mutateWorkItem(workitem, function(result) state:setState(result) end)
 				end, { buffer = bufObj.bufnr, desc = "Open work item in browser" })
 			end,

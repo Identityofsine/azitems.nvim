@@ -48,6 +48,9 @@ end
 function Person:constructor(opts)
 	---@type Person
 	local self = {}
+	if not opts then
+		opts = {}
+	end
 	self.displayName = opts.displayName or ""
 	self.id = opts.id or -1
 	self.url = opts.url or ""

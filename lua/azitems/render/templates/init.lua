@@ -37,7 +37,6 @@ Templater.getWorkItemTemplate = function(workItem)
 	local template_path = get_template_path(template_name)
 	local file = table.concat(vim.fn.readfile(template_path), "\n")
 	local text = file
-	text = text:gsub("{{emoji}}", nilSafeString(WorkTypeTable[workItem.fields.workItemType]("")))
 	text = text:gsub("{{title}}", nilSafeString(workItem.fields.title))
 	text = text:gsub("{{id}}", nilSafeString(workItem.id))
 	text = text:gsub("{{workItemType}}", nilSafeString(workItem.fields.workItemType))

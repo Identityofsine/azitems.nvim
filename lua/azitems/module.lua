@@ -12,4 +12,9 @@ end
 M.getWorkItems = function()
 	return AzureModule:getWorkItems()
 end
+
+M.getQueries = function()
+	return AzureModule:getQueries()
+end
+
 return M

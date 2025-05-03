@@ -24,7 +24,7 @@ end
 local displayer = entry_display.create({
   separator = " ",
   items = {
-    { width = 11 },
+    { width = 10 },
     { width = 61 },
   },
 })
@@ -41,6 +41,7 @@ M.workItems = function()
 			results = workItems,
 			---@param entry State 
 			entry_maker = function(entry)
+				---@type WorkItem
 				local value = entry:getState()
 				if not value then
 					return nil
@@ -50,8 +51,8 @@ M.workItems = function()
 					display = function()
 						---@type WorkItem
 						return displayer({
-							{ workitemUtils[value.fields.workItemType](tostring(value.id)), "Bug" },
-							{ value.fields.title, "BugText" },
+							{ (workitemUtils:get(value.fields.workItemType))(" " .. tostring(value.id)), GetHighLightbyWorkType(value.fields.workItemType) },
+							{ value.fields.title, GetHighLightbyWorkType(value.fields.workItemType.."Text") },
 						})
 					end,
 					ordinal = value.id .. " " .. value.fields.title,
@@ -68,6 +69,36 @@ M.workItems = function()
 			end)
 			return true
 		end,
+	}):find()
+end
+
+M.queries = function()
+	local queries = module.getQueries()
+	pickers.new({}, {
+		prompt_title = "A6 Queries",
+		finder = finders.new_table {
+			results = queries.children,
+			entry_maker = function(entry)
+				return {
+					---@type Query
+					value = entry,
+					display = function()
+						return entry.path
+					end,
+					ordinal = entry.path,
+				}
+			end,
+		},
+		sorter = conf.generic_sorter({}),
+		attach_mappings = function(prompt_bufnr, map)
+			actions.select_default:replace(function()
+				actions.close(prompt_bufnr)
+				---@type Query
+				local selection = action_state.get_selected_entry().value
+				config.config.azure.workitem.query = selection
+			end)
+			return true
+		end
 	}):find()
 end
 

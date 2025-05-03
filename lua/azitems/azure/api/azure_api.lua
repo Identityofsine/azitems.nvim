@@ -5,7 +5,9 @@ local WorkItem      = require("azitems.azure.model.workitem")
 local state         = require("azitems.render.state")
 require("azitems.util")
 require("azitems.azure.api.api")
+require("azitems.azure.api.query")
 require("azitems.azure.api.parser")
+require("azitems.azure.api.cache")
 
 
 ---@class AzureApi
@@ -194,11 +196,51 @@ end
 
 function AzureApi:getWorkItems()
 
-	local preWorkItems = AzureFetch(FetchOpts)
-	local workitems = Parser.parseWorkItems(preWorkItems)
+	local workitems = {}
+	local workitemIds = QueryApi:executeQuery(config.config.azure.workitem.query)
+	-- get all workitem ids from query
+	workitemIds = Map(function(tbl) return tbl.id end, workitemIds.workItems)
+	-- store nonCached ids in tempArray
+	local tempArray = {}
+	for _, id in ipairs(workitemIds) do
+		local cached = WorkItemCache:getItem(id)
+		if not cached then
+			table.insert(tempArray, id)
+			goto continue
+		else
+			table.insert(workitems, cached:getData())
+		end
+	  ::continue::
+	end
+	--set workitemIds to tempArray
+	workitemIds = tempArray
+	local remainingWorkItemIds = #workitemIds
+	vim.notify("Fetching " .. remainingWorkItemIds .. " work items", vim.log.levels.INFO)
+  while remainingWorkItemIds > 0 do
+		local slice = Slice(workitemIds, 0, 200)
+		local currentFetch = slice.sliced
+		workitemIds = slice.remaining
+		remainingWorkItemIds = #workitemIds
+		---@type FetchOpts
+		local opts = {
+			requestMethod = "post",
+			headers = {},
+			url = "https://dev.azure.com/" .. "lbisoftware" .. "/" .. "A5" .. "/" .. "_apis/wit/workitemsbatch?api-version=7.2-preview.1",
+			org = "lbisoftware",
+			project = "A5",
+			body = {
+				ids = currentFetch,
+			},
+		}
+		local preWorkItems = AzureFetch(opts)
+		PushMass(workitems, Parser.parseWorkItems(preWorkItems))
+  end
+
 	local statefulWorkItems = {}
+	---@param value WorkItem
 	for index, value in ipairs(workitems) do
 		statefulWorkItems[index] = state:new(value)
+		WorkItemCache:cacheItem(value.id, "workitem", value)
 	end
 
 	return statefulWorkItems
@@ -206,7 +248,7 @@ end
 
 ---@param workItem WorkItem
 ---@param callback function
-function AzureApi:mutateWorkItem(workItem, callback)
+function AzureApi:mutateWorkItem(workItem, callback, mutation)
 	-- call api and update workItem
 	-- ...
 	return callback(workItem)
