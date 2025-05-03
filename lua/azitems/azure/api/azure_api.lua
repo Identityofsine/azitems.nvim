@@ -3,8 +3,9 @@ local person = require("azitems.azure.model.person")
 local WorkItemField = require("azitems.azure.model.workitemfield")
 local WorkItem      = require("azitems.azure.model.workitem")
 local state         = require("azitems.render.state")
-
 require("azitems.util")
+require("azitems.azure.api.api")
+require("azitems.azure.api.parser")
 
 
 ---@class AzureApi

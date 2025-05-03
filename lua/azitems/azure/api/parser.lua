@@ -1,3 +1,6 @@
+local person = require("azitems.azure.model.person")
+local WorkItemField = require("azitems.azure.model.workitemfield")
+local WorkItem      = require("azitems.azure.model.workitem")
 ---@class Parser
 Parser = {}
 
