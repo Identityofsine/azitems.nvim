@@ -1,4 +1,7 @@
-# Azure DevOps WorkItem neovim integration 
+# azitems.nvim
+
+**Azure DevOps Neovim Integration**
+
 `azitems.nvim` is a Neovim plugin that allows you to interact with your Azure DevOps work items directly from your Neovim editor using your own Queries and WIQL.
 
 <img src="./doc/images/image.png" />
