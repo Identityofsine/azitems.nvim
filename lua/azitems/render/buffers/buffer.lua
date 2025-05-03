@@ -2,7 +2,7 @@ local templates = require("azitems.render.templates")
 local highlighter = require("azitems.render.buffers.highlighter")
 local config = require("azitems.config")
 require("azitems.util.buffer")
-local azure_api = require("azitems.azure.azure_api")
+require("azitems.azure.azure")
 
 --types for the buffer
 ---@class BufferOpts 
@@ -250,7 +250,7 @@ Buffer.createWorkItem = function(state, opts)
 				vim.keymap.set('', '<Tab>', function()
 					workitem = state:getState()
 					workitem.fields.workItemType = "Ready for Code Review"
-					azure_api:mutateWorkItem(workitem, function(result) state:setState(result) end)
+					AzureApi:mutateWorkItem(workitem, function(result) state:setState(result) end)
 				end, { buffer = bufObj.bufnr, desc = "Open work item in browser" })
 			end,
 		} or opts.events,

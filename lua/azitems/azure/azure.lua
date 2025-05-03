@@ -1,5 +1,5 @@
-require("azitems.azure.azure_api")
-local AzureApi = require("azitems.azure.azure_api")
+require("azitems.azure.api")
+require("azitems.azure.api")
 
 ---@class AzureModule
 local AzureModule = {};

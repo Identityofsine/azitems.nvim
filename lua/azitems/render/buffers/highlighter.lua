@@ -43,11 +43,6 @@ Highlighter.highlightWorkItemTemplate = function(self, buffer)
 			if char == '*' then
 				if str:sub(c + 1, c + 1) == '*' then
 					if isInsideBoldTag > -1 then
-						vim.api.nvim_buf_set_extmark(buffer.bufnr, config.namespace, i, isInsideBoldTag, {
-							hl_group = "CreatedBy",
-							end_col = c - 1,
-							hl_mode = "replace",
-						})
 						isInsideBoldTag = -1
 					else
 						c = c + 1
