@@ -9,10 +9,15 @@
 
 ## Features
 - View Azure DevOps work items in a telescope window.
+- View Azure DevOps queries in a telescope window.
+- Enter Work Items to view their details such as description, and comments. (Attachments, reactions, and related work items coming soon.)
 - Query Azure DevOps work items using personal queries or WIQL.
 
 ## Planned
 - [ ] Better error handling.
+- [ ] Add support for reactions on comments. 
+- [ ] Add support for related work items.
+  - [ ] Allow going to the related work item.
 - [ ] Add support for WIQL queries.
 - [ ] Add better methods for configuration: 
   - [ ] Set organization and project on the fly (without modifying your config).
