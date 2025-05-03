@@ -1,4 +1,3 @@
-
 ---@class WorkItemFieldsAPI
 ---@field System.AreaPath string | nil
 ---@field System.TeamProject string | nil
@@ -63,6 +62,7 @@ local WorkItemFieldsAPI = {
 ---@field createdBy Person | nil
 ---@field changedDate string | nil
 ---@field changedBy Person | nil
+---@field comments Comment[] | nil
 ---@field communtCount number | nil
 ---@field title string
 ---@field priority string | number | nil
@@ -82,6 +82,7 @@ local WorkItemFields = {
 	createdDate = nil,
 	createdBy = nil,
 	changedDate = nil,
+	comments = {},
 	changedBy = nil,
 	communtCount = nil,
 	priority = nil,
@@ -104,6 +105,7 @@ function WorkItemFields:constructor(
 	areaPath,
 	teamProject,
 	iterationPath,
+	comments,
 	workItemType,
 	communtCount,
 	valueArea
@@ -118,6 +120,7 @@ function WorkItemFields:constructor(
 	self.reason = reason
 	self.assignedTo = assignedTo
 	self.createdDate = createdDate
+	self.comments = comments or {}
 	self.createdBy = createdBy
 	self.changedDate = changedDate
 	self.changedBy = changedBy

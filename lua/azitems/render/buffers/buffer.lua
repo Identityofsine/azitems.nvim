@@ -3,6 +3,7 @@ local highlighter = require("azitems.render.buffers.highlighter")
 local config = require("azitems.config")
 require("azitems.util.buffer")
 require("azitems.azure.azure")
+require("azitems.azure.api")
 
 --types for the buffer
 ---@class BufferOpts 
@@ -195,42 +196,44 @@ BufferStylizer.stylizeToWorkItem = function(self, state, bufferObj)
 			}
 		end
 
-		if not bufferObj.id and not vim.api.nvim_buf_is_valid(opts.buf) then
-			if unsubscribe then
-				unsubscribe()
+		vim.schedule(function()
+			if not bufferObj.id and not vim.api.nvim_buf_is_valid(opts.buf) then
+				if unsubscribe then
+					unsubscribe()
+				end
+				return
+			elseif not vim.api.nvim_buf_is_valid(bufferObj.bufnr) then
+				if unsubscribe then
+					unsubscribe()
+				end
+				BufferCache:closeBuffer(bufferObj.id)
 			end
-			return
-		elseif not vim.api.nvim_buf_is_valid(bufferObj.bufnr) then
-			if unsubscribe then
-				unsubscribe()
-			end
-			BufferCache:closeBuffer(bufferObj.id)
-		end
 
-		-- Set the buffer options
-		vim.api.nvim_set_option_value("modifiable", true, opts)
-		vim.api.nvim_set_option_value("readonly", false, opts)
-		vim.api.nvim_set_option_value("buftype", "nofile", opts)
-		vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
-		vim.api.nvim_set_option_value("swapfile", false, opts)
-		vim.api.nvim_set_option_value("filetype", "markdown", opts)
+			-- Set the buffer options
+			vim.api.nvim_set_option_value("modifiable", true, opts)
+			vim.api.nvim_set_option_value("readonly", false, opts)
+			vim.api.nvim_set_option_value("buftype", "nofile", opts)
+			vim.api.nvim_set_option_value("bufhidden", "wipe", opts)
+			vim.api.nvim_set_option_value("swapfile", false, opts)
+			vim.api.nvim_set_option_value("filetype", "markdown", opts)
 
-		bufferObj.content = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
-		-- Set some sample text
-		highlighter:clearHighlights(bufferObj)
+			bufferObj.content = vim.split(templates.getWorkItemTemplate(workItem), "\n", { plain = true })
+			-- Set some sample text
+			highlighter:clearHighlights(bufferObj)
 
-		local cursorPos = vim.api.nvim_win_get_cursor(0)
+			local cursorPos = vim.api.nvim_win_get_cursor(0)
 
-		vim.api.nvim_buf_set_lines(bufferObj.bufnr, 0, -1, false, {})
-		vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, bufferObj.content)
+			vim.api.nvim_buf_set_lines(bufferObj.bufnr, 0, -1, false, {})
+			vim.api.nvim_buf_set_lines(bufferObj.bufnr, 2, -1, false, bufferObj.content)
 
-		--set the cursor position to where it was
-		vim.api.nvim_win_set_cursor(0, { cursorPos[1], cursorPos[2] })
+			--set the cursor position to where it was
+			vim.api.nvim_win_set_cursor(0, { cursorPos[1], cursorPos[2] })
 
-		highlighter:highlightWorkItemTemplate(bufferObj)
+			highlighter:highlightWorkItemTemplate(bufferObj)
 
-		vim.api.nvim_set_option_value("readonly", true, opts)
-		vim.api.nvim_set_option_value("modifiable", false, opts)
+			vim.api.nvim_set_option_value("readonly", true, opts)
+			vim.api.nvim_set_option_value("modifiable", false, opts)
+		end)
 	end
 
 	effect(state:subscribe(effect))
@@ -276,6 +279,19 @@ Buffer.createWorkItem = function(state, opts)
 	end
 
 	bufferObj = BufferStylizer:stylizeToWorkItem(state, bufferObj)
+
+	--get comments for workitem
+	CommentApi:getComments(workitem.id, {
+		callback = function(comments)
+			if not comments or #comments == 0 then
+				return
+			end
+			---@param s WorkItem 
+			state:setState(function(s)
+				s.fields.comments = comments
+			end)
+		end
+	})
 
 	return bufferObj
 end

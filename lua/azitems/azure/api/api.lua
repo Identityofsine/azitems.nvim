@@ -9,6 +9,7 @@ FetchOpts = {
 	requestMethod = "get",
 	org = "lbisoftware",
 	project = "A5",
+	callback = nil,
 	body = {},
 	headers = {
 		["Content-Type"] = "application/json",
@@ -28,21 +29,48 @@ function AzureFetch(opts)
 	local fOpts = Merge(FetchOpts, opts)
   local json_body = vim.json.encode(fOpts.body)
 
-	local body = curl[opts.requestMethod]({
+	local curl_method = curl[fOpts.requestMethod]
+	if not curl_method then
+		vim.notify("AzureFetch: Invalid request method: " .. tostring(fOpts.requestMethod), vim.log.levels.ERROR)
+		return nil
+	end
+
+	local postRequestSync = function(body)
+		if body.error then
+			vim.notify("Error fetching data from Azure DevOps: " .. body.error, vim.log.levels.ERROR)
+			return nil
+		end
+		return vim.json.decode(body.body)
+	end
+
+	if opts.callback then
+		fOpts.callback = function(body)
+			local rBody = postRequestSync(body)
+			if rBody then
+				opts.callback(rBody)
+			else
+				vim.notify("Error fetching data from Azure DevOps: " .. body.error, vim.log.levels.ERROR)
+			end
+		end
+	end
+
+	local body = curl_method({
 		url = fOpts.url,
 		body = json_body,
+		callback = fOpts.callback,
 		headers = Merge(opts.headers, {
 			["Content-Type"] = "application/json",
 			["Content-Length"] = tostring(#json_body),
 			["Authorization"] = "Bearer" .. config.config.azure.patToken,
 		}),
 	})
-	if body.error then
-		vim.notify("Error fetching data from Azure DevOps: " .. body.error, vim.log.levels.ERROR)
+
+	if fOpts.callback then
 		return nil
 	end
 
-	return vim.json.decode(body.body)
+	return postRequestSync(body)
+
 end
 
 

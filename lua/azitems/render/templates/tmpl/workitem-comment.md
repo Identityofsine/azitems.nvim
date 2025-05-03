@@ -1,0 +1,6 @@
+
+💬 **{{createdBy.displayName}}** *({{createdDate}})*  
+
+> {{text}}
+
+---

@@ -28,10 +28,7 @@ end
 
 Parser.parseComments = function(body)
 	local comments = {}
-	if not body or not body.value then
-		return comments
-	end
-	for _, item in ipairs(body.value) do
+	for _, item in ipairs(body) do
 		local comment = Parser.parseComment(item)
 		table.insert(comments, comment)
 	end

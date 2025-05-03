@@ -8,6 +8,7 @@ require("azitems.azure.api.api")
 require("azitems.azure.api.query")
 require("azitems.azure.api.parser")
 require("azitems.azure.api.cache")
+require("azitems.azure.api.comment")
 
 
 ---@class AzureApi
@@ -233,14 +234,18 @@ function AzureApi:getWorkItems()
 			},
 		}
 		local preWorkItems = AzureFetch(opts)
-		PushMass(workitems, Parser.parseWorkItems(preWorkItems))
+		local _workitems = Parser.parseWorkItems(preWorkItems)
+		PushMass(workitems, _workitems)
+		for _, value in ipairs(_workitems) do
+			-- cache workitem
+			WorkItemCache:cacheItem(value.id, "workitem", value)
+		end
   end
 
 	local statefulWorkItems = {}
 	---@param value WorkItem
 	for index, value in ipairs(workitems) do
-		statefulWorkItems[index] = state:new(value)
-		WorkItemCache:cacheItem(value.id, "workitem", value)
+		statefulWorkItems[index] = state:new(value)	
 	end
 
 	return statefulWorkItems
