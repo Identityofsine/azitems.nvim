@@ -38,17 +38,14 @@ end
 
 ---@class Cache
 ---@field private _cache table
----@field private _cacheTime number
 ---^ pulled from config
 local Cache = {
-	_cacheTime = config.config.api.cache.refreshTime,
 }
 
 --- Methods
 function Cache:new()
 	local obj = {
 		_cache = {},
-		_cacheTime = 0,
 	}
 	setmetatable(obj, self)
 	self.__index = self
@@ -60,6 +57,9 @@ function Cache:clear()
 end
 
 function Cache:cacheItem(id, type, data)
+	if config.config.api.cache.enabled == false then
+		return
+	end
 	---@type CachedItem
 	local item = CachedItem:new({
 		_id = id,
@@ -73,10 +73,15 @@ end
 ---@param id string
 ---@return CachedItem | nil
 function Cache:getItem(id)
+
+	if config.config.api.cache.enabled == false then
+		return nil
+	end
+
 	---@type CachedItem
 	local item = self._cache[id]
 	if item then
-		if item:getCachedAt() + self._cacheTime > os.time() then
+		if item:getCachedAt() + config.config.api.cache.refreshTime < os.time() then
 			self._cache[id] = nil
 			return nil
 		else
