@@ -3,8 +3,8 @@
 
 <img src="./doc/images/image.png" />
 <p float="left">
-  <img src="./doc/images/image1.png" width="50%" /> 
-  <img src="./doc/images/image1.png" width="50%" />
+  <img src="./doc/images/image1.png" width="45%" /> 
+  <img src="./doc/images/image1.png" width="45%" />
 </p>
 
 ## Features
