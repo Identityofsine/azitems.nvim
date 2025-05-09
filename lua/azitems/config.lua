@@ -10,12 +10,7 @@ local config = {
 		patToken = "",
 		org = "",
 		project = "",
-		workitem = {
-			query = {
-				id = "128ef632-31a2-420a-b413-8140848fb015",
-				name = "Me",
-			}
-		}
+		workitem = {}
 	},
 }
 

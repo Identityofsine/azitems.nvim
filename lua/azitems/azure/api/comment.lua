@@ -19,7 +19,7 @@ function CommentApi:getComments(workItemId, opts)
 		headers = {},
 		url = CommentsEndpoint:gsub("{{org}}", config.config.azure.org):gsub("{{project}}", config.config.azure.project):gsub("{{workitemid}}", workItemId),
 		org = config.config.azure.org,
-		project = "A5",
+		project = config.config.azure.project,
 	}, opts)
 
 	local cb = function(body)

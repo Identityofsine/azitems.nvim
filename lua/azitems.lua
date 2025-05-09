@@ -12,6 +12,7 @@ local highlight = require("azitems.highlight")
 local renderer = require("azitems.render")
 local module = require("azitems.module")
 local workitemUtils = require("azitems.util.string")
+require("azitems.util")
 
 ---@class MyModule
 local M = {}
@@ -35,7 +36,7 @@ local WorkItemPreviewer = previewers.new_buffer_previewer({
 M.workItems = function()
 	local workItems = module.getWorkItems()
 	pickers.new({}, {
-		prompt_title = "A6 Work Items",
+		prompt_title = string.format("%s Work Items", config.config.azure.workitem.query.path),
 		finder = finders.new_table {
 			results = workItems,
 			---@param entry State 
@@ -72,11 +73,18 @@ M.workItems = function()
 end
 
 M.queries = function()
-	local queries = module.getQueries()
+	local queries = Filter(module.getQueries(), function(tbl)
+		if tbl.children and #tbl.children > 0 then
+			return true
+		end
+	end)
+	local queriesChildren = Map(function(tbl)
+		return tbl.children
+	end, queries)
 	pickers.new({}, {
-		prompt_title = "A6 Queries",
+		prompt_title = string.format("%s Queries", config.config.azure.project),
 		finder = finders.new_table {
-			results = queries.children,
+			results = queriesChildren[1],
 			entry_maker = function(entry)
 				return {
 					---@type Query

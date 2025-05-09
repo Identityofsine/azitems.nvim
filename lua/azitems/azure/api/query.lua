@@ -24,16 +24,21 @@ function QueryApi:fetchQueries()
 	local preQueries = AzureFetch(opts)
 	if not preQueries then
 		vim.notify("Error fetching queries from Azure DevOps", vim.log.levels.ERROR)
-		return nil
+		return {}
 	end
 	-- Check if the response is empty
 	if not preQueries or not preQueries.value or #preQueries.value == 0 then
 		vim.notify("No queries found in Azure DevOps", vim.log.levels.ERROR)
-		return nil
+		return {}
 	end
-	preQueries = preQueries.value[1]
+	local queries = {}
+	for _, query in ipairs(preQueries.value) do
+		local q = Parser.parseQuery(query)
+		if q then
+			table.insert(queries, q)
+		end
+	end
 
-	local queries = Parser.parseQuery(preQueries)
 	return queries
 end
 

@@ -33,7 +33,11 @@ function AzureFetch(opts)
 	---@type FetchOpts
 	local fOpts = Merge(FetchOpts, freshOpts)
 	fOpts = Merge(fOpts, opts or {})
-  local json_body = vim.json.encode(fOpts.body)
+  local jStatus, json_body = pcall(vim.json.encode, (fOpts.body))
+	if not jStatus then
+		vim.notify("AzureFetch: Error encoding body to JSON: " .. json_body, vim.log.levels.ERROR)
+		return nil
+	end
 
 	local curl_method = curl[fOpts.requestMethod]
 	if not curl_method then
@@ -51,7 +55,11 @@ function AzureFetch(opts)
 
 	if opts.callback then
 		fOpts.callback = function(body)
-			local rBody = postRequestSync(body)
+			local status, rBody = pcall(postRequestSync, (body))
+			if not status then
+				vim.notify("Error parsing response from Azure DevOps: " .. rBody, vim.log.levels.ERROR)
+				return nil
+			end
 			if rBody then
 				opts.callback(rBody)
 			else

@@ -13,7 +13,7 @@ AzureApi = {}
 function AzureApi:getWorkItems()
 
 	local workitems = {}
-	if config.config.azure.workitem.query == nil then
+	if config.config.azure.workitem == nil or config.config.azure.workitem.query == nil then
 		vim.notify("No query found in config, please select one using :AZQueries", vim.log.levels.ERROR)
 		return workitems
 	end
@@ -45,9 +45,9 @@ function AzureApi:getWorkItems()
 		local opts = {
 			requestMethod = "post",
 			headers = {},
-			url = "https://dev.azure.com/" .. "lbisoftware" .. "/" .. "A5" .. "/" .. "_apis/wit/workitemsbatch?api-version=7.2-preview.1",
-			org = "lbisoftware",
-			project = "A5",
+			url = "https://dev.azure.com/" .. config.config.azure.org .. "/" .. config.config.azure.project .. "/" .. "_apis/wit/workitemsbatch?api-version=7.2-preview.1",
+			org = config.config.azure.org,
+			project = config.config.azure.project,
 			body = {
 				ids = currentFetch,
 			},

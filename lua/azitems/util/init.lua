@@ -4,6 +4,7 @@ require ('azitems.util.string')
 require ('azitems.util.html')
 require ('azitems.util.map')
 require ('azitems.util.push')
+require ('azitems.util.filter')
 require ('azitems.util.slice')
 require ('azitems.util.ternary')
 
